@@ -2,11 +2,16 @@
 
 An extension for Cursor and VSCode that lets you pull `.cursorrules` files from the [awesome-cursorrules](https://github.com/PatrickJS/awesome-cursorrules) repository.
 
+[![Visual Studio Marketplace Version](https://img.shields.io/vscode-marketplace/v/beilunyang.cursor-rules.svg?label=VSCode%20Marketplace&color=blue)](https://marketplace.visualstudio.com/items?itemName=beilunyang.cursor-rules)
+[![Visual Studio Marketplace Downloads](https://img.shields.io/vscode-marketplace/d/beilunyang.cursor-rules.svg?label=Downloads&color=green)](https://marketplace.visualstudio.com/items?itemName=beilunyang.cursor-rules)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 ## Features
 - Add local `.cursorrules` file by pulling `.cursorrules` templates from the [awesome-cursorrules](https://github.com/PatrickJS/awesome-cursorrules) repository.
 
 ## Usage
 - Open the command palette (Cmd+Shift+P or Ctrl+Shift+P) and type "Cursor Rules: Add .cursorrules".
+![demo](/images/demo.gif)
 
 ## Contributing
 - Fork the repository.
