@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { fetchCursorRulesList, fetchCursorRuleContent } from '../utils/githubApi';
 import * as path from 'path';
 
-export async function addCursorRuleCommand() {
+export async function addCursorRuleCommand(context: vscode.ExtensionContext) {
     try {
         const quickPick = vscode.window.createQuickPick();
         quickPick.placeholder = 'Loading...';
@@ -10,7 +10,7 @@ export async function addCursorRuleCommand() {
 
         let rules = [];
         try {
-            rules = await fetchCursorRulesList();
+            rules = await fetchCursorRulesList(context);
         } catch (error) {
             vscode.window.showErrorMessage('Error loading rules list.');
             quickPick.hide();

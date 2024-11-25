@@ -1,5 +1,7 @@
 import axios from 'axios';
 import * as fs from 'fs';
+import { Cache } from './cache';
+import * as vscode from 'vscode';
 
 export interface Rule {
     name: string;
@@ -8,12 +10,32 @@ export interface Rule {
 
 const REPO_API_URL = 'https://api.github.com/repos/PatrickJS/awesome-cursorrules/contents/rules';
 
-export async function fetchCursorRulesList(): Promise<Rule[]> {
-    const response = await axios.get(REPO_API_URL);
-    return response.data.map((file: any) => ({
-        name: file.name,
-        download_url: file.download_url
-    }));
+const RULES_CACHE_KEY = 'cursor_rules_list';
+
+export async function fetchCursorRulesList(context: vscode.ExtensionContext): Promise<Rule[]> {
+    const cache = Cache.getInstance(context);
+    const cachedRules = cache.get<Rule[]>(RULES_CACHE_KEY);
+
+    const updateCache = async () => {
+        try {
+            const response = await axios.get(REPO_API_URL);
+            const rules = response.data.map((file: any) => ({
+                name: file.name,
+                download_url: file.download_url
+            }));
+            cache.set(RULES_CACHE_KEY, rules);
+        } catch (error) {
+            console.error('Cache update failed:', error);
+        }
+    };
+
+    if (cachedRules) {
+        updateCache();
+        return cachedRules;
+    }
+
+    await updateCache();
+    return cache.get<Rule[]>(RULES_CACHE_KEY)!;
 }
 
 export async function fetchCursorRuleContent(ruleName: string, filePath: string, onProgress: (progress: number) => void): Promise<void> {

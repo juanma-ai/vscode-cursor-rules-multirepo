@@ -2,7 +2,7 @@
   "name": "cursor-rules",
   "displayName": "Cursor Rules",
   "description": "An extension for Cursor and VSCode that lets you pull .cursorrules files from the https://github.com/PatrickJS/awesome-cursorrules repository",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "BeilunYang",
   "publisher": "BeilunYang",
   "icon": "images/icon.png",
