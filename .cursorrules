@@ -70,6 +70,7 @@ If there's a `.cursorrules` already created, once the user selects a rule from t
 - Use proper TypeScript types and interfaces
 - Follow VSCode extension lifecycle patterns
 - Implement proper workspace checks before operations
+- Keep the existing format rules of the code and add new code following exisiting formatting rules.
 
 ## File Operations
 
