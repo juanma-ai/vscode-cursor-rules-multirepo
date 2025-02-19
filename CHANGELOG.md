@@ -1,6 +1,13 @@
 # Changelog
 
-## [0.3.0] - 2024-03-XX
+## 0.2.0 (2025-02-19)
+
+### Added
+
+- User prompt to choose between appending or overwriting .cursorrules file
+- Interactive selection for handling existing rules
+
+## 0.1.0 (2024-12-20)
 
 ### Added
 

@@ -1,5 +1,6 @@
 import axios from "axios";
 import * as fs from "fs";
+import * as fsPromises from "fs/promises";
 import { Cache } from "./cache";
 import * as vscode from "vscode";
 
@@ -92,25 +93,42 @@ export async function fetchCursorRuleContent(
   const initialResponse = await axios.get(url);
   const downloadUrl = initialResponse.data.download_url;
 
-  const response = await axios.get(downloadUrl, { responseType: "stream" });
+  let finalContent = "";
+  const response = await axios.get(downloadUrl, { responseType: "text" });
+  finalContent = response.data;
 
-  const totalLength = parseInt(response.headers["content-length"], 10);
-  let downloaded = 0;
+  try {
+    const fileExists = await fsPromises
+      .access(filePath)
+      .then(() => true)
+      .catch(() => false);
 
-  const writer = fs.createWriteStream(filePath);
+    let operation = "created";
+    if (fileExists) {
+      const choice = await vscode.window.showQuickPick(
+        [
+          { label: "Append", description: "Add to existing rules" },
+          { label: "Overwrite", description: "Replace existing rules" },
+        ],
+        {
+          placeHolder: "How would you like to handle existing .cursorrules?",
+        }
+      );
 
-  response.data.on("data", (chunk: Buffer) => {
-    downloaded += chunk.length;
-    if (totalLength) {
-      const progress = (downloaded / totalLength) * 100;
-      onProgress(Math.round(progress));
+      if (!choice) {
+        return; // User cancelled
+      }
+
+      operation = `${choice.label.toLowerCase()}d`;
+      if (choice.label === "Append") {
+        const existingContent = await fsPromises.readFile(filePath, "utf-8");
+        finalContent = `${existingContent.trim()}\n\n${finalContent}`;
+      }
     }
-  });
 
-  response.data.pipe(writer);
-
-  return new Promise((resolve, reject) => {
-    writer.on("finish", resolve);
-    writer.on("error", reject);
-  });
+    await fsPromises.writeFile(filePath, finalContent);
+    vscode.window.showInformationMessage(`Rules ${operation} successfully!`);
+  } catch (error) {
+    throw new Error(`Failed to handle file: ${error}`);
+  }
 }
