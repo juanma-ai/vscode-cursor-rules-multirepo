@@ -23,7 +23,22 @@
         "command": "cursorRules.addRule",
         "title": "Cursor Rules: Add .cursorrules"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Cursor Rules",
+      "properties": {
+        "cursorRules.repos": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "https://api.github.com/repos/PatrickJS/awesome-cursorrules/contents/rules"
+          ],
+          "description": "List of GitHub API URLs to fetch cursor rules from. Rules will be displayed in the same order as repositories are listed."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
