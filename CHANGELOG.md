@@ -59,3 +59,16 @@
 - Added new type definitions for better development experience
 - Updated TypeScript configuration for better type checking
 - Improved development tooling with better type support
+
+## [0.x.0] - YYYY-MM-DD
+
+### Added
+
+- Support for configurable repository sources via `cursorRules.repos` setting
+- Repository order in settings now determines the order of rules in the Command Palette
+- Improved error handling for invalid repository URLs
+
+### Changed
+
+- Replaced hardcoded repository URLs with configurable ones from settings
+- Enhanced GitHub URL parsing to support various URL formats

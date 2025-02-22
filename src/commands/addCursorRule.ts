@@ -54,6 +54,13 @@ export async function addCursorRuleCommand(context: vscode.ExtensionContext) {
 
     const workspacePath = workspaceFolders[0].uri.fsPath;
     const filePath = path.join(workspacePath, ".cursorrules");
+    console.log({
+      filePath,
+      selected,
+      context,
+      workspaceFolders,
+      workspacePath,
+    });
 
     await vscode.window.withProgress(
       {

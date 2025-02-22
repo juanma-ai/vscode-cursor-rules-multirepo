@@ -14,7 +14,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:cursorRules.addRule"
+    "onStartupFinished",
+    "workspaceContains:.vscode/settings.json"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -25,6 +26,7 @@
       }
     ],
     "configuration": {
+      "id": "configurationCursorRules",
       "title": "Cursor Rules",
       "properties": {
         "cursorRules.repos": {
@@ -33,7 +35,7 @@
             "type": "string"
           },
           "default": [
-            "https://api.github.com/repos/PatrickJS/awesome-cursorrules/contents/rules"
+            "https://github.com/PatrickJS/awesome-cursorrules/tree/main/rules"
           ],
           "description": "List of GitHub API URLs to fetch cursor rules from. Rules will be displayed in the same order as repositories are listed."
         }
@@ -57,5 +59,8 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/beilunyang/vscode-cursor-rules.git"
+  },
+  "__metadata": {
+    "size": 96504546
   }
 }
