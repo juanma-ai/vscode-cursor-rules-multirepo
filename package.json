@@ -38,6 +38,11 @@
             "https://github.com/PatrickJS/awesome-cursorrules/tree/main/rules"
           ],
           "description": "List of GitHub API URLs to fetch cursor rules from. Rules will be displayed in the same order as repositories are listed."
+        },
+        "cursorRules.githubToken": {
+          "type": "string",
+          "default": "",
+          "description": "GitHub Personal Access Token for API access"
         }
       }
     }

@@ -4,6 +4,7 @@ import * as fsPromises from "fs/promises";
 import { Cache } from "./cache";
 import * as vscode from "vscode";
 import { getConfiguredRepos } from "./config";
+import { workspace } from "vscode";
 
 export interface Rule {
   name: string;
@@ -19,6 +20,39 @@ export interface GithubContent {
 }
 
 const RULES_CACHE_KEY = "cursor_rules_list";
+
+function getRawGithubUrl(url: string): string {
+  try {
+    const urlObj = new URL(url);
+
+    // Handle if it's already a raw URL
+    if (urlObj.hostname === "raw.githubusercontent.com") {
+      return url;
+    }
+
+    // Handle API URL conversion
+    if (urlObj.hostname === "api.github.com") {
+      // Extract the components from the API URL
+      const parts = urlObj.pathname.split("/");
+      const owner = parts[2];
+      const repo = parts[3];
+      const path = parts.slice(5).join("/");
+
+      return `https://raw.githubusercontent.com/${owner}/${repo}/refs/heads/main/${path}/.cursorrules`;
+    }
+
+    // Handle regular GitHub URL
+    const parts = urlObj.pathname.split("/");
+    const owner = parts[1];
+    const repo = parts[2];
+    const path = parts.slice(4).join("/");
+
+    return `https://raw.githubusercontent.com/${owner}/${repo}/refs/heads/main/${path}/.cursorrules`;
+  } catch (error) {
+    console.error("Error converting to raw URL:", error);
+    return url; // Return original URL if conversion fails
+  }
+}
 
 // Move getRepoIdentifier to module scope
 function getRepoIdentifier(url: string): string {
@@ -39,6 +73,29 @@ function getRepoIdentifier(url: string): string {
   }
 }
 
+interface GitHubApiOptions {
+  headers: {
+    Authorization?: string;
+    Accept: string;
+  };
+}
+
+function getGitHubApiOptions(useToken: boolean = false): GitHubApiOptions {
+  const headers: GitHubApiOptions["headers"] = {
+    Accept: "application/vnd.github.v3+json",
+  };
+
+  if (useToken) {
+    const config = workspace.getConfiguration("cursorRules");
+    const token = config.get<string>("githubToken");
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+  }
+
+  return { headers };
+}
+
 async function fetchRulesFromRepo(
   url: string,
   repoName: string
@@ -46,19 +103,73 @@ async function fetchRulesFromRepo(
   try {
     const apiUrl = convertGithubUrlToApi(url);
     if (!apiUrl) {
-      throw new Error(`Invalid repository URL: ${url}`);
+      console.error(`Failed to convert URL: ${url}`);
+      vscode.window.showErrorMessage(`Invalid GitHub repository URL: ${url}`);
+      return [];
     }
 
-    const contents = await fetchGithubContents(apiUrl);
-    return contents.map((file) => ({
-      name: file.name,
-      download_url: file.download_url,
-      source: repoName,
-    }));
+    console.log("Fetching from API URL:", apiUrl);
+
+    // First try without token
+    try {
+      const response = await axios.get(apiUrl, getGitHubApiOptions(false));
+      return processApiResponse(response.data, repoName);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 403) {
+        // If rate limited, try again with token
+        console.log("Rate limited, attempting with token...");
+        const response = await axios.get(apiUrl, getGitHubApiOptions(true));
+        return processApiResponse(response.data, repoName);
+      }
+      throw error; // Re-throw if it's not a rate limit error
+    }
   } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 403) {
+      const message = error.response.data?.message || "Rate limit exceeded";
+      const config = workspace.getConfiguration("cursorRules");
+      const hasToken = config.get<string>("githubToken");
+
+      if (!hasToken) {
+        vscode.window.showErrorMessage(
+          `GitHub API: ${message}. To increase rate limits, please configure a GitHub token in settings:
+          1. Open Settings (Cmd/Ctrl + ,)
+          2. Search for "cursorRules.githubToken"
+          3. Add your GitHub Personal Access Token`
+        );
+      } else {
+        vscode.window.showErrorMessage(
+          `GitHub API: ${message}. Please check if your token has correct permissions or try again later.`
+        );
+      }
+    } else {
+      vscode.window.showErrorMessage(
+        `Failed to fetch rules from ${repoName}: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
     console.error(`Failed to fetch rules from ${repoName}:`, error);
     return [];
   }
+}
+
+// Helper function to process API response
+function processApiResponse(data: any, repoName: string): Rule[] {
+  if (!Array.isArray(data)) {
+    console.error("Unexpected API response format:", data);
+    return [];
+  }
+
+  const rulesData = data
+    //.filter((file: any) => file.type === "file" && file.name === ".cursorrules")
+    .map((file: any) => ({
+      name: file.name,
+      download_url: getRawGithubUrl(file.url),
+      source: repoName,
+    }));
+
+  console.log("rulesData", rulesData);
+  return rulesData;
 }
 
 export async function fetchCursorRulesList(
@@ -70,12 +181,9 @@ export async function fetchCursorRulesList(
   const updateCache = async () => {
     try {
       const repos = getConfiguredRepos();
-      // Extract repository names from URLs for better identification
       const repoNames = repos.map(getRepoIdentifier);
-      console.log("Repository identifiers:", repoNames);
 
       const rulesPromises = repos.map((repoUrl) =>
-        // Use the repository identifier as the source name
         fetchRulesFromRepo(repoUrl, getRepoIdentifier(repoUrl))
       );
 
@@ -108,38 +216,26 @@ export async function fetchCursorRuleContent(
   onProgress: (progress: number) => void,
   context: vscode.ExtensionContext
 ): Promise<void> {
-  const cache = Cache.getInstance(context);
-  const rules = cache.get<Rule[]>(RULES_CACHE_KEY);
-  const selectedRule = rules?.find((rule) => rule.name === ruleName);
-
-  if (!selectedRule) {
-    throw new Error("Rule not found");
-  }
-
-  // Get the repository URL by matching the source name
-  const repos = getConfiguredRepos();
-  const repoUrl = repos.find(
-    (url) => getRepoIdentifier(url) === selectedRule.source
-  );
-
-  if (!repoUrl) {
-    throw new Error("Repository not found");
-  }
-
-  const apiUrl = convertGithubUrlToApi(repoUrl);
-  if (!apiUrl) {
-    throw new Error("Invalid repository URL");
-  }
-
-  const url = `${apiUrl}/${ruleName}/.cursorrules`;
-  const initialResponse = await axios.get(url);
-  const downloadUrl = initialResponse.data.download_url;
-
-  let finalContent = "";
-  const response = await axios.get(downloadUrl, { responseType: "text" });
-  finalContent = response.data;
-
   try {
+    const cache = Cache.getInstance(context);
+    const rules = cache.get<Rule[]>(RULES_CACHE_KEY);
+    const selectedRule = rules?.find((rule) => rule.name === ruleName);
+
+    if (!selectedRule || !selectedRule.download_url) {
+      console.error("Selected rule or download URL not found:", {
+        ruleName,
+        selectedRule,
+      });
+      throw new Error("Rule not found or invalid download URL");
+    }
+
+    console.log("Fetching rule content from:", selectedRule.download_url);
+    const response = await axios.get(selectedRule.download_url, {
+      ...getGitHubApiOptions(),
+      responseType: "text",
+    });
+    const finalContent = response.data;
+
     const fileExists = await fsPromises
       .access(filePath)
       .then(() => true)
@@ -164,14 +260,22 @@ export async function fetchCursorRuleContent(
       operation = `${choice.label.toLowerCase()}d`;
       if (choice.label === "Append") {
         const existingContent = await fsPromises.readFile(filePath, "utf-8");
-        finalContent = `${existingContent.trim()}\n\n${finalContent}`;
+        const newContent = `${existingContent.trim()}\n\n${finalContent}`;
+        await fsPromises.writeFile(filePath, newContent);
+      } else {
+        await fsPromises.writeFile(filePath, finalContent);
       }
+    } else {
+      await fsPromises.writeFile(filePath, finalContent);
     }
 
-    await fsPromises.writeFile(filePath, finalContent);
     vscode.window.showInformationMessage(`Rules ${operation} successfully!`);
   } catch (error) {
-    throw new Error(`Failed to handle file: ${error}`);
+    console.error("Error in fetchCursorRuleContent:", error);
+    if (error instanceof Error) {
+      throw new Error(`Failed to handle file: ${error.message}`);
+    }
+    throw new Error("Failed to handle file: Unknown error");
   }
 }
 
@@ -204,56 +308,83 @@ async function fetchGithubContents(apiUrl: string): Promise<GithubContent[]> {
   }
 }
 
-export async function fetchRulesFromRepos(): Promise<GithubContent[]> {
-  try {
-    const repos = getConfiguredRepos();
-    const allRules: GithubContent[] = [];
+// export async function fetchRulesFromRepos(): Promise<GithubContent[]> {
+//   try {
+//     const repos = getConfiguredRepos();
+//     const allRules: GithubContent[] = [];
 
-    for (const repoUrl of repos) {
-      const apiUrl = convertGithubUrlToApi(repoUrl);
-      if (!apiUrl) {
-        vscode.window.showWarningMessage(`Invalid repository URL: ${repoUrl}`);
-        continue;
-      }
+//     for (const repoUrl of repos) {
+//       const apiUrl = convertGithubUrlToApi(repoUrl);
+//       if (!apiUrl) {
+//         vscode.window.showWarningMessage(`Invalid repository URL: ${repoUrl}`);
+//         continue;
+//       }
 
-      try {
-        const rules = await fetchGithubContents(apiUrl);
-        allRules.push(...rules);
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown error";
-        vscode.window.showWarningMessage(
-          `Failed to fetch rules from ${repoUrl}: ${errorMessage}`
-        );
-      }
-    }
+//       try {
+//         const rules = await fetchGithubContents(apiUrl);
+//         allRules.push(...rules);
+//       } catch (error) {
+//         const errorMessage =
+//           error instanceof Error ? error.message : "Unknown error";
+//         vscode.window.showWarningMessage(
+//           `Failed to fetch rules from ${repoUrl}: ${errorMessage}`
+//         );
+//       }
+//     }
 
-    return allRules;
-  } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
-    throw new Error(`Failed to fetch rules: ${errorMessage}`);
-  }
-}
+//     return allRules;
+//   } catch (error) {
+//     const errorMessage =
+//       error instanceof Error ? error.message : "Unknown error";
+//     throw new Error(`Failed to fetch rules: ${errorMessage}`);
+//   }
+// }
 
 function convertGithubUrlToApi(githubUrl: string): string | null {
   try {
     const url = new URL(githubUrl);
-    const pathParts = url.pathname.split("/");
 
-    // Remove empty strings and 'tree' from path
-    const cleanParts = pathParts.filter((part) => part && part !== "tree");
-
-    if (cleanParts.length < 4) {
-      return null;
+    // If it's already an API URL, return it
+    if (url.hostname === "api.github.com") {
+      return githubUrl;
     }
 
-    const [owner, repo, ...pathRest] = cleanParts;
-    const branch = pathRest.shift(); // Remove branch name
-    const path = pathRest.join("/");
+    // Handle github.com URLs
+    if (url.hostname === "github.com") {
+      const pathParts = url.pathname.split("/").filter(Boolean);
 
-    return `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+      // We need at least owner/repo
+      if (pathParts.length < 2) {
+        console.error("Invalid GitHub URL format - need at least owner/repo");
+        return null;
+      }
+
+      const [owner, repo, ...rest] = pathParts;
+
+      // Handle tree/blob/raw paths
+      let path = "";
+      if (rest.length > 0) {
+        const treeIndex = rest.indexOf("tree");
+        const blobIndex = rest.indexOf("blob");
+        const startIndex = Math.max(treeIndex, blobIndex);
+
+        if (startIndex !== -1 && rest.length > startIndex + 1) {
+          // Skip the 'tree' or 'blob' part and the branch name
+          path = rest.slice(startIndex + 2).join("/");
+        } else {
+          path = rest.join("/");
+        }
+      }
+
+      const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+      console.log("Converted URL:", apiUrl);
+      return apiUrl;
+    }
+
+    console.error("Not a GitHub URL");
+    return null;
   } catch (error) {
+    console.error("Error converting GitHub URL:", error);
     return null;
   }
 }
