@@ -1,19 +1,40 @@
 # Changelog
 
-## 0.2.0 (2025-02-19)
+## 1.0.0 (Initial Release)
+
+## 0.3.0
 
 ### Added
 
 - User prompt to choose between appending or overwriting .cursorrules file
 - Interactive selection for handling existing rules
 
-## 0.1.0 (2024-12-20)
+## 0.2.0
+
+### Added
+
+- Support for configurable repository sources via `cursorRules.repos` setting
+- Repository order in settings now determines the order of rules in the Command Palette
+- Improved error handling for invalid repository URLs
+
+### Changed
+
+- Replaced hardcoded repository URLs with configurable ones from settings
+- Enhanced GitHub URL parsing to support various URL formats
+
+## 0.1.0
+
+### Fork Information
+
+- Based on [Custom Cursor Rules](https://marketplace.visualstudio.com/items?itemName=beilunyang.cursor-rules) of BeilunYang's
 
 ### Added
 
 - Support for fetching rules from two repositories:
+
   - Official repo: `PatrickJS/awesome-cursorrules`
   - Custom repo: `juanma-ai/my-cursor-rules`
+
 - Source indicator in QuickPick UI showing which repository each rule comes from
 - Progress interface for better type safety
 - Custom rules now appear first in the selection list
@@ -22,9 +43,11 @@
 ### Changed
 
 - Updated dependencies and type definitions:
+
   - Updated @types/axios to ^0.14.4
   - Updated @types/node to ^22.10.1
   - Updated @types/vscode to ^1.95.0
+
 - Modified `tsconfig.json` to include 'dom' lib for console support
 - Improved code formatting with consistent double quotes
 - Enhanced error handling for repository fetching
@@ -59,16 +82,3 @@
 - Added new type definitions for better development experience
 - Updated TypeScript configuration for better type checking
 - Improved development tooling with better type support
-
-## [0.x.0] - YYYY-MM-DD
-
-### Added
-
-- Support for configurable repository sources via `cursorRules.repos` setting
-- Repository order in settings now determines the order of rules in the Command Palette
-- Improved error handling for invalid repository URLs
-
-### Changed
-
-- Replaced hardcoded repository URLs with configurable ones from settings
-- Enhanced GitHub URL parsing to support various URL formats

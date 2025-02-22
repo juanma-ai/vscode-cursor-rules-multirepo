@@ -1,29 +1,42 @@
-# Cursor Rules Extension for Cursor and VSCode
+# Cursor Rules Extension Multirepo for Cursor and VSCode
 
-An extension for Cursor and VSCode that lets you pull `.cursorrules` files from the [awesome-cursorrules](https://github.com/PatrickJS/awesome-cursorrules) repository.
+An enhanced fork of [Custom Cursor Rules](https://marketplace.visualstudio.com/items?itemName=beilunyang.cursor-rules) by [BeilunYang](https://github.com/beilunyang) with additional features for managing multiple cursor rule repositories.
 
-[![Visual Studio Marketplace Version](https://img.shields.io/vscode-marketplace/v/beilunyang.cursor-rules.svg?label=VSCode%20Marketplace&color=blue)](https://marketplace.visualstudio.com/items?itemName=beilunyang.cursor-rules)
-[![Visual Studio Marketplace Downloads](https://img.shields.io/vscode-marketplace/d/beilunyang.cursor-rules.svg?label=Downloads&color=green)](https://marketplace.visualstudio.com/items?itemName=beilunyang.cursor-rules)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+## New Features in this Fork
 
-## Features
-- Add local `.cursorrules` file by pulling `.cursorrules` templates from the [awesome-cursorrules](https://github.com/PatrickJS/awesome-cursorrules) repository.
+- Support for configurable repository sources via `cursorRules.repos` setting
+  - Repository order in settings determines the order of rules in the Command Palette
+
+```
+"cursorRules.repos": [
+    "https://github.com/juanma-ai/my-cursor-rules/tree/main/rules",
+    "https://github.com/PatrickJS/awesome-cursorrules/tree/main/rules"
+  ]
+```
+
+- Source indicator in QuickPick UI showing which repository each rule comes from
+- User prompt to choose between appending or overwriting .cursorrules file
+- Enhanced error handling and typescript definitions
+
+[Visual Studio Marketplace Version](https://marketplace.visualstudio.com/items?itemName=juanmaguitar.custom-cursor-rules-multirepo)
+[Visual Studio Marketplace Downloads](https://marketplace.visualstudio.com/items?itemName=juanmaguitar.custom-cursor-rules-multirepo)
+[License: MIT](https://opensource.org/licenses/MIT)
 
 ## Usage
-- Open the command palette (Cmd+Shift+P or Ctrl+Shift+P) and type "Cursor Rules: Add .cursorrules".
-![demo](/images/demo.gif)
+
+- Open the command palette (Cmd+Shift+P or Ctrl+Shift+P) and type "Cursor Rules Multirepo: Add .cursorrules".
 
 ## Contributing
+
 - Fork the repository.
 - Create a new branch.
 - Make your changes and test locally.
 - Submit a pull request and wait for approval.
 
-## Donate
-<img src="https://pic.otaku.ren/20240212/AQADPrgxGwoIWFZ-.jpg" style="width: 400px;"/>
-<br />
-<a href="https://www.buymeacoffee.com/beilunyang" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee" style="width: 400px;" ></a>
+## Credits
+
+This extension is based on the original work by [BeilunYang](https://github.com/beilunyang). Original repository: [vscode-cursor-rules](https://github.com/beilunyang/vscode-cursor-rules)
 
 ## License
-[MIT License](LICENSE). 
 
+[MIT License](LICENSE).
