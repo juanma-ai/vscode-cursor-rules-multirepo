@@ -5,6 +5,7 @@ node_modules
 *.vsix
 .vscode/**
 .vscode-test/**
+.DS_Store
 
 # Ignore generated files
 l10n/bundle.l10n.json

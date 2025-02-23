@@ -1,8 +1,8 @@
 # Cursor Rules Extension Multirepo for Cursor and VSCode
 
-[Visual Studio Marketplace Version](https://marketplace.visualstudio.com/items?itemName=juanmaguitar.custom-cursor-rules-multirepo)
-[Visual Studio Marketplace Downloads](https://marketplace.visualstudio.com/items?itemName=juanmaguitar.custom-cursor-rules-multirepo)
-[License: MIT](https://opensource.org/licenses/MIT)
+[![Visual Studio Marketplace Version](https://img.shields.io/vscode-marketplace/v/juanmaguitar.custom-cursor-rules-multirepo.svg?label=VSCode%20Marketplace&color=blue)](https://marketplace.visualstudio.com/items?itemName=juanmaguitar.custom-cursor-rules-multirepo)
+[![Visual Studio Marketplace Downloads](https://img.shields.io/vscode-marketplace/d/juanmaguitar.custom-cursor-rules-multirepo.svg?label=Downloads&color=green)](https://marketplace.visualstudio.com/items?itemName=juanmaguitar.custom-cursor-rules-multirepo)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 An enhanced fork of [Custom Cursor Rules](https://marketplace.visualstudio.com/items?itemName=beilunyang.cursor-rules) by [BeilunYang](https://github.com/beilunyang) with additional features for managing multiple cursor rule repositories.
 
