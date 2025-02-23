@@ -14,9 +14,13 @@ An enhanced fork of [Custom Cursor Rules](https://marketplace.visualstudio.com/i
 ```
 "cursorRules.repos": [
     "https://github.com/juanma-ai/my-cursor-rules/tree/main/rules",
-    "https://github.com/PatrickJS/awesome-cursorrules/tree/main/rules"
+    "https://github.com/PatrickJS/awesome-cursorrules/tree/main/rules",
+    "https://github.com/tugkanboz/awesome-cursorrules/tree/main/rules"
   ]
 ```
+
+> [!NOTE]
+> Any repo added to `cursorRules.repos` must follow the same structure than https://github.com/PatrickJS/awesome-cursorrules/tree/main/rules to organize the rules (e.g: `rules/appium-mobile-test-automation-framework/.cursorrules`)
 
 - Source indicator in QuickPick UI showing which repository each rule comes from
 - User prompt to choose between appending or overwriting .cursorrules file
@@ -25,6 +29,12 @@ An enhanced fork of [Custom Cursor Rules](https://marketplace.visualstudio.com/i
 ## Usage
 
 - Open the command palette (Cmd+Shift+P or Ctrl+Shift+P) and type "Cursor Rules Multirepo: Add .cursorrules".
+
+![](./images/1-download-cursorrule.gif)
+
+- If a `.cursorrule` is detected you can overwrite the existing one or append the selected one to the existing one
+
+![](./images/2-append-cursorrule.gif)
 
 ## Contributing
 
