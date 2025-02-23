@@ -2,7 +2,7 @@
   "name": "custom-cursor-rules-multirepo",
   "displayName": "Custom Cursor Rules Multirepo",
   "description": "An extension for Cursor and VSCode that lets you pull .cursorrules files from a set of repositories",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": {
     "name": "juanmaguitar",
     "url": "https://github.com/juanmaguitar"
