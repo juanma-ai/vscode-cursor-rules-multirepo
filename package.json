@@ -23,8 +23,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onStartupFinished",
-    "workspaceContains:.vscode/settings.json"
+    "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {

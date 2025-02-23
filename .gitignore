@@ -3,6 +3,8 @@ dist
 node_modules
 .vscode-test/
 *.vsix
+.vscode/**
+.vscode-test/**
 
 # Ignore generated files
 l10n/bundle.l10n.json
