@@ -2,6 +2,10 @@
  * Mock for the vscode module
  */
 
+// Create storage maps for our mocks
+const globalStateStorage = new Map<string, any>();
+const workspaceStateStorage = new Map<string, any>();
+
 // Global namespace that would be provided by VS Code
 const vscode = {
   workspace: {
@@ -30,44 +34,117 @@ const vscode = {
   window: {
     createQuickPick: () => ({
       placeholder: "",
-      show: () => {},
-      hide: () => {},
+      show: () => {
+        // Mock implementation - intentionally empty
+      },
+      hide: () => {
+        // Mock implementation - intentionally empty
+      },
       onDidAccept: (callback: () => void) => {
         callback();
-        return { dispose: () => {} };
+        return {
+          dispose: () => {
+            // Mock implementation - intentionally empty
+          },
+        };
       },
       onDidHide: (callback: () => void) => {
         callback();
-        return { dispose: () => {} };
+        return {
+          dispose: () => {
+            // Mock implementation - intentionally empty
+          },
+        };
       },
       items: [],
       selectedItems: [],
     }),
-    showErrorMessage: () => {},
-    showInformationMessage: () => {},
-    withProgress: async (options: any, task: any) => {
+    showErrorMessage: () => {
+      // Mock implementation - intentionally empty
+    },
+    showInformationMessage: () => {
+      // Mock implementation - intentionally empty
+    },
+    withProgress: async (
+      options: Record<string, unknown>,
+      task: (progress: Record<string, unknown>) => Promise<unknown>
+    ) => {
       return task({
-        report: () => {},
+        report: () => {
+          // Mock implementation - intentionally empty
+        },
       });
     },
   },
   commands: {
-    registerCommand: (command: string, callback: () => void) => {
-      return { dispose: () => {} };
+    registerCommand: (_command: string, _callback: () => void) => {
+      return {
+        dispose: () => {
+          // Mock implementation - intentionally empty
+        },
+      };
     },
   },
-  ProgressLocation: {
-    Notification: 1,
+  progressLocation: {
+    notification: 1,
   },
-  Uri: {
+  uri: {
     file: (path: string) => ({ fsPath: path }),
   },
-  EventEmitter: class {
-    event: any;
+  eventEmitter: class {
+    event: () => void;
     constructor() {
-      this.event = () => {};
+      this.event = () => {
+        // Mock implementation - intentionally empty
+      };
     }
-    fire() {}
+    fire(): void {
+      // Mock implementation - intentionally empty
+    }
+  },
+  // Custom implementation of Memento interface for testing
+  Memento: class {
+    private storage: Map<string, any>;
+
+    constructor(storage: Map<string, any>) {
+      this.storage = storage;
+    }
+
+    get<T>(key: string): T | undefined {
+      return this.storage.get(key) as T;
+    }
+
+    update(key: string, value: any): Promise<boolean> {
+      this.storage.set(key, value);
+      return Promise.resolve(true);
+    }
+
+    setKeysForSync(keys: readonly string[]): void {
+      // Mock implementation - intentionally empty
+    }
+  },
+  // Add mock for ExtensionContext
+  ExtensionContext: class {
+    subscriptions: Array<{ dispose(): void }> = [];
+    workspaceState: any;
+    globalState: any;
+    extensionPath = "";
+    extensionUri = { fsPath: "" };
+    asAbsolutePath = (relativePath: string) => relativePath;
+    storagePath = "";
+    globalStoragePath = "";
+    logPath = "";
+    extensionMode = 1;
+    secrets = {
+      get: (key: string) => Promise.resolve(""),
+      store: (key: string, value: string) => Promise.resolve(),
+      delete: (key: string) => Promise.resolve(),
+    };
+
+    constructor() {
+      this.workspaceState = new vscode.Memento(workspaceStateStorage);
+      this.globalState = new vscode.Memento(globalStateStorage);
+    }
   },
 };
 

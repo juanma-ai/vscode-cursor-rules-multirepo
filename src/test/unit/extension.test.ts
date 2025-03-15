@@ -4,6 +4,11 @@ import * as vscode from "vscode";
 import { activate, deactivate } from "../../extension";
 import { Cache } from "../../utils/cache";
 
+// Define a type for the disposable
+interface Disposable {
+  dispose(): void;
+}
+
 describe("Extension", () => {
   let mockContext: vscode.ExtensionContext;
   let registerCommandStub: sinon.SinonStub;
@@ -19,8 +24,20 @@ describe("Extension", () => {
     // Create mock context with required properties
     mockContext = {
       subscriptions: [],
-      workspaceState: { get: () => {}, update: () => Promise.resolve() },
-      globalState: { get: () => {}, update: () => Promise.resolve() },
+      workspaceState: {
+        get: () => {
+          // Mock implementation - intentionally empty
+          return undefined;
+        },
+        update: () => Promise.resolve(),
+      },
+      globalState: {
+        get: () => {
+          // Mock implementation - intentionally empty
+          return undefined;
+        },
+        update: () => Promise.resolve(true),
+      },
       extensionPath: "/test/extension/path",
       extensionUri: { fsPath: "/test/extension/path" },
       asAbsolutePath: (relativePath: string) =>
@@ -39,7 +56,7 @@ describe("Extension", () => {
     // Stub vscode.commands.registerCommand
     sinon
       .stub(vscode.commands, "registerCommand")
-      .returns(registerCommandStub as any);
+      .returns(registerCommandStub as unknown as Disposable);
   });
 
   afterEach(() => {

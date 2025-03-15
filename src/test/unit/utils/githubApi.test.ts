@@ -4,6 +4,9 @@ import axios from "axios";
 import { Cache } from "../../../utils/cache";
 import * as configModule from "../../../utils/config";
 import * as githubApiModule from "../../../utils/githubApi";
+import * as vscode from "vscode";
+import { setLogger } from "../../../utils/logger";
+import { SpyLogger } from "../../mocks/logger";
 
 // Create a type alias for the Rule interface
 type Rule = githubApiModule.Rule;
@@ -12,25 +15,29 @@ type Rule = githubApiModule.Rule;
 const RULES_CACHE_KEY = "cursor_rules_list";
 
 describe("GitHub API Utilities", () => {
-  let mockContext: any;
+  let mockContext: vscode.ExtensionContext;
   let axiosStub: sinon.SinonStub;
   let configStub: sinon.SinonStub;
   let mockCache: {
     get: sinon.SinonStub;
     set: sinon.SinonStub;
   };
-  let cacheGetInstanceStub: sinon.SinonStub;
+  // Add a spy logger for tests that need to check log messages
+  let spyLogger: SpyLogger;
 
   beforeEach(() => {
+    // Set up spy logger
+    spyLogger = new SpyLogger();
+    setLogger(spyLogger);
+
     // Mock cache
     mockCache = {
       get: sinon.stub(),
       set: sinon.stub(),
     };
 
-    cacheGetInstanceStub = sinon
-      .stub(Cache, "getInstance")
-      .returns(mockCache as any);
+    // Create stub for Cache.getInstance
+    sinon.stub(Cache, "getInstance").returns(mockCache as unknown as Cache);
 
     // Mock axios
     axiosStub = sinon.stub(axios, "get");
@@ -42,13 +49,15 @@ describe("GitHub API Utilities", () => {
     mockContext = {
       globalState: {
         get: sinon.stub(),
-        update: sinon.stub().resolves(),
+        update: sinon.stub().resolves(true),
       },
-    };
+    } as unknown as vscode.ExtensionContext;
   });
 
   afterEach(() => {
     sinon.restore();
+    // Reset the spy logger
+    spyLogger.reset();
   });
 
   describe("fetchCursorRulesList", () => {
@@ -57,7 +66,7 @@ describe("GitHub API Utilities", () => {
       const cachedRules: Rule[] = [
         {
           name: "rule1.json",
-          download_url: "https://example.com/rule1.json",
+          downloadUrl: "https://example.com/rule1.json",
           source: "repo1",
         },
       ];
@@ -86,7 +95,7 @@ describe("GitHub API Utilities", () => {
       const apiResponseData = [
         {
           name: "rule1.md",
-          download_url:
+          downloadUrl:
             "https://raw.githubusercontent.com/user/repo/main/rules/rule1.md",
           type: "file",
           url: "https://api.github.com/repos/user/repo/contents/rules/rule1.md",
@@ -105,6 +114,8 @@ describe("GitHub API Utilities", () => {
       expect(configStub.calledOnce).to.be.true;
       expect(axiosStub.calledOnce).to.be.true;
       expect(mockCache.set.calledOnce).to.be.true;
+      // Assert on logged messages
+      expect(spyLogger.containsMessage("debug", "rulesData")).to.be.true;
     });
   });
 
@@ -114,7 +125,7 @@ describe("GitHub API Utilities", () => {
       const mockRules: Rule[] = [
         {
           name: "rule1.json",
-          download_url: "https://example.com/rule1.json",
+          downloadUrl: "https://example.com/rule1.json",
           source: "repo1",
         },
       ];
@@ -143,6 +154,14 @@ describe("GitHub API Utilities", () => {
       // Verify mocks
       expect(mockCache.get.calledWith(RULES_CACHE_KEY)).to.be.true;
       expect(axiosStub.called).to.be.false; // Should not call axios if rule is not found
+
+      // Assert that the error was logged
+      expect(
+        spyLogger.containsMessage(
+          "error",
+          "Selected rule or download URL not found"
+        )
+      ).to.be.true;
     });
   });
 });

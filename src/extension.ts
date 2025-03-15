@@ -5,7 +5,7 @@ import { Cache } from "./utils/cache";
 export function activate(context: vscode.ExtensionContext) {
   Cache.getInstance(context);
 
-  let disposable = vscode.commands.registerCommand(
+  const disposable = vscode.commands.registerCommand(
     "cursorRules.addRule",
     () => {
       return addCursorRuleCommand(context);
@@ -14,4 +14,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(disposable);
 }
 
-export function deactivate() {}
+// This function is called when the extension is deactivated
+export function deactivate() {
+  // Nothing to clean up
+}

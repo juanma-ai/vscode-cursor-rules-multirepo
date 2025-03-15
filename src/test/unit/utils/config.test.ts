@@ -11,7 +11,7 @@ describe("Config Utilities", () => {
     inspectStub = sinon.stub();
     configStub = sinon.stub(vscode.workspace, "getConfiguration").returns({
       inspect: inspectStub,
-    } as any);
+    } as unknown as vscode.WorkspaceConfiguration);
   });
 
   afterEach(() => {
