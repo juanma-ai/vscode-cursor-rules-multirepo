@@ -3,27 +3,19 @@ import * as sinon from "sinon";
 import axios from "axios";
 import { Cache } from "../../../utils/cache";
 import * as configModule from "../../../utils/config";
-import { setLogger } from "../../../utils/logger";
 import { SpyLogger } from "../../mocks/logger";
 import * as vscode from "vscode";
+import { createGithubApiClient } from "../../../utils/githubApi";
 
-// Create a type alias for the Rule interface
-// Import this after we set up the logger
-let githubApiModule: typeof import("../../../utils/githubApi");
-type Rule = any; // Will be properly typed after module import
+// We'll use proper typing now
+interface Rule {
+  name: string;
+  downloadUrl: string;
+  source: string;
+}
 
 // Cache key constant should match the one in the actual module
 const RULES_CACHE_KEY = "cursor_rules_list";
-
-// Helper function to reset module with our spy logger
-function resetGithubApiModule() {
-  // Clear require cache for the module
-  const modulePath = require.resolve("../../../utils/githubApi");
-  delete require.cache[modulePath];
-
-  // Now import the module which will use our spy logger
-  githubApiModule = require("../../../utils/githubApi");
-}
 
 describe("GitHub API Utilities", () => {
   let mockContext: vscode.ExtensionContext;
@@ -33,16 +25,16 @@ describe("GitHub API Utilities", () => {
     get: sinon.SinonStub;
     set: sinon.SinonStub;
   };
-  // Add a spy logger for tests that need to check log messages
   let spyLogger: SpyLogger;
+  // Store our API client instance
+  let githubApi: ReturnType<typeof createGithubApiClient>;
 
   beforeEach(() => {
-    // Set up spy logger FIRST
+    // Set up spy logger
     spyLogger = new SpyLogger();
-    setLogger(spyLogger);
 
-    // Reset and reload the module with our logger
-    resetGithubApiModule();
+    // Create the API client with our logger injected
+    githubApi = createGithubApiClient({ logger: spyLogger });
 
     // Mock cache
     mockCache = {
@@ -89,7 +81,7 @@ describe("GitHub API Utilities", () => {
       mockCache.get.withArgs(RULES_CACHE_KEY).returns(cachedRules);
 
       // Act
-      const result = await githubApiModule.fetchCursorRulesList(mockContext);
+      const result = await githubApi.fetchCursorRulesList(mockContext);
 
       // Assert
       expect(result).to.deep.equal(cachedRules);
@@ -120,7 +112,7 @@ describe("GitHub API Utilities", () => {
       axiosStub.resolves({ data: apiResponseData });
 
       // Act
-      const result = await githubApiModule.fetchCursorRulesList(mockContext);
+      const result = await githubApi.fetchCursorRulesList(mockContext);
 
       // Assert
       expect(result).to.be.an("array");
@@ -152,7 +144,7 @@ describe("GitHub API Utilities", () => {
       // Act & Assert
       let error: Error | null = null;
       try {
-        await githubApiModule.fetchCursorRuleContent(
+        await githubApi.fetchCursorRuleContent(
           "nonexistent.json",
           "/test/path/file.cursorrules", // use any path, we'll throw before file operations
           progressCallback,
