@@ -19,6 +19,8 @@ describe("Config Utilities", () => {
   });
 
   describe("getConfiguredRepos", () => {
+    // Tests that when a workspace-specific configuration exists,
+    // it takes precedence over both global and default values
     it("should return workspace value if available", () => {
       const workspaceRepos = ["https://github.com/user1/repo1"];
       inspectStub.returns({
@@ -34,6 +36,8 @@ describe("Config Utilities", () => {
       expect(inspectStub.calledOnceWith("cursorRules.repos")).to.be.true;
     });
 
+    // Tests that if no workspace-specific configuration exists,
+    // the global value is returned if available
     it("should return global value if workspace value is not available", () => {
       const globalRepos = ["https://github.com/user2/repo2"];
       inspectStub.returns({

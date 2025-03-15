@@ -1,5 +1,9 @@
 import * as vscode from "vscode";
 
+/**
+ * Get the configured repositories from the workspace configuration
+ * @returns An array of repository URLs
+ */
 export function getConfiguredRepos(): string[] {
   const config = vscode.workspace.getConfiguration();
 
