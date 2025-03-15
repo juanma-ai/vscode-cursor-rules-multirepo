@@ -3,16 +3,27 @@ import * as sinon from "sinon";
 import axios from "axios";
 import { Cache } from "../../../utils/cache";
 import * as configModule from "../../../utils/config";
-import * as githubApiModule from "../../../utils/githubApi";
-import * as vscode from "vscode";
 import { setLogger } from "../../../utils/logger";
 import { SpyLogger } from "../../mocks/logger";
+import * as vscode from "vscode";
 
 // Create a type alias for the Rule interface
-type Rule = githubApiModule.Rule;
+// Import this after we set up the logger
+let githubApiModule: typeof import("../../../utils/githubApi");
+type Rule = any; // Will be properly typed after module import
 
 // Cache key constant should match the one in the actual module
 const RULES_CACHE_KEY = "cursor_rules_list";
+
+// Helper function to reset module with our spy logger
+function resetGithubApiModule() {
+  // Clear require cache for the module
+  const modulePath = require.resolve("../../../utils/githubApi");
+  delete require.cache[modulePath];
+
+  // Now import the module which will use our spy logger
+  githubApiModule = require("../../../utils/githubApi");
+}
 
 describe("GitHub API Utilities", () => {
   let mockContext: vscode.ExtensionContext;
@@ -26,9 +37,12 @@ describe("GitHub API Utilities", () => {
   let spyLogger: SpyLogger;
 
   beforeEach(() => {
-    // Set up spy logger
+    // Set up spy logger FIRST
     spyLogger = new SpyLogger();
     setLogger(spyLogger);
+
+    // Reset and reload the module with our logger
+    resetGithubApiModule();
 
     // Mock cache
     mockCache = {
@@ -114,6 +128,7 @@ describe("GitHub API Utilities", () => {
       expect(configStub.calledOnce).to.be.true;
       expect(axiosStub.calledOnce).to.be.true;
       expect(mockCache.set.calledOnce).to.be.true;
+
       // Assert on logged messages
       expect(spyLogger.containsMessage("debug", "rulesData")).to.be.true;
     });
