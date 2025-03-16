@@ -1,14 +1,7 @@
-// Export types
+// This file is now just a re-export of the modular githubApi folder
+// for backward compatibility
 export * from "./types";
-
-// Export URL utilities
 export * from "./urlUtils";
-
-// Export API configuration
 export * from "./apiConfig";
-
-// Export rules fetcher functions
 export * from "./rulesFetcher";
-
-// Export cache manager functions
-export * from "./cacheManager";
+export * from "./rulesService";
