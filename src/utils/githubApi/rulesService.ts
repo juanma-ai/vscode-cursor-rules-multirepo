@@ -8,6 +8,7 @@ import { fetchRulesFromRepo } from "./rulesFetcher";
 import { getGitHubApiOptions } from "./apiConfig";
 import axios from "axios";
 import path from "path";
+import { workspace } from "vscode";
 
 /**
  * Fetch the cursor rules list
@@ -20,12 +21,12 @@ export async function fetchCursorRulesList(
   const cache = Cache.getInstance(context);
   const cachedRules = cache.get<Rule[]>(RULES_CACHE_KEY);
 
-  const updateCache = async () => {
+  const updateCache = async (): Promise<Rule[]> => {
     try {
       const repos = getConfiguredRepos();
       if (!repos || !Array.isArray(repos)) {
         console.error("Invalid or empty repos configuration");
-        return;
+        return [];
       }
 
       const rulesPromises = repos.map((repoUrl) =>
@@ -34,19 +35,28 @@ export async function fetchCursorRulesList(
 
       const repoResults = await Promise.all(rulesPromises);
       const combinedRules = repoResults.flat();
-      cache.set(RULES_CACHE_KEY, combinedRules);
+      console.log("Setting cache with combined rules:", combinedRules);
+      await cache.set(RULES_CACHE_KEY, combinedRules);
+      return combinedRules;
     } catch (error) {
       console.error("Cache update failed:", error);
+      return [];
     }
   };
 
   if (cachedRules) {
-    updateCache(); // Update cache in background
+    console.log("Found cached rules:", cachedRules);
+    // Don't await the cache update, let it run in the background
+    updateCache().catch((error) => {
+      console.error("Background cache update failed:", error);
+    });
     return cachedRules;
   }
 
-  await updateCache();
-  return cache.get<Rule[]>(RULES_CACHE_KEY) || [];
+  console.log("No cached rules found, fetching...");
+  const updatedRules = await updateCache();
+  console.log("Fetched rules:", updatedRules);
+  return updatedRules;
 }
 
 /**
@@ -82,18 +92,26 @@ export async function fetchCursorRuleContent(
     });
     const finalContent = response.data;
 
-    // Create .cursor/rules directory if it doesn't exist
-    const rulesDir = path.join(path.dirname(filePath), ".cursor", "rules");
+    // Get the workspace folder
+    const workspaceFolder = workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) {
+      throw new Error("No workspace folder found");
+    }
+
+    // Create .cursor/rules directory in the workspace root
+    const rulesDir = path.join(workspaceFolder.uri.fsPath, ".cursor", "rules");
     try {
       await fsPromises.mkdir(rulesDir, { recursive: true });
+      console.log("Created rules directory:", rulesDir);
     } catch (error) {
       console.error("Error creating rules directory:", error);
       throw new Error("Failed to create rules directory");
     }
 
-    // Save the rule file in the .cursor/rules directory
+    // Save the rule file in the .cursor/rules directory with original name
     const ruleFilePath = path.join(rulesDir, ruleName);
     await fsPromises.writeFile(ruleFilePath, finalContent);
+    console.log("Saved rule file to:", ruleFilePath);
 
     vscode.window.showInformationMessage(
       `Rule saved successfully to ${ruleFilePath}!`

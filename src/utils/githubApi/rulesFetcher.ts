@@ -20,15 +20,34 @@ export function processApiResponse(
     return [];
   }
 
-  const rulesData = data
-    //.filter((file: any) => file.type === "file" && file.name === ".cursorrules")
-    .map((file: Record<string, unknown>) => ({
-      name: file.name as string,
-      downloadUrl: getRawGithubUrl(file.url as string),
-      source: repoName,
-    }));
+  console.log("Processing API response:", JSON.stringify(data, null, 2));
+  console.log("Repository name:", repoName);
 
-  console.log("rulesData", rulesData);
+  const rulesData = data
+    .filter((file: any) => {
+      const isFile = file.type === "file";
+      const isMdc = file.name.endsWith(".mdc");
+      const name = file.name || "undefined";
+      const type = file.type || "undefined";
+      console.log(
+        `Filtering file: name=${name}, type=${type}, isFile=${isFile}, isMdc=${isMdc}`
+      );
+      return isFile && isMdc;
+    })
+    .map((file: Record<string, unknown>) => {
+      const rule = {
+        name: file.name as string,
+        downloadUrl: file.download_url as string,
+        source: repoName,
+      };
+      console.log("Mapped rule:", JSON.stringify(rule, null, 2));
+      return rule;
+    });
+
+  console.log(
+    "Final processed rules data:",
+    JSON.stringify(rulesData, null, 2)
+  );
   return rulesData;
 }
 
@@ -43,6 +62,16 @@ export async function fetchRulesFromRepo(
   repoName: string
 ): Promise<Rule[]> {
   try {
+    // Check if the URL points to .cursor/rules directory
+    const isRulesDir = url.includes("/.cursor/rules");
+    if (!isRulesDir) {
+      console.error(`URL must point to .cursor/rules directory: ${url}`);
+      vscode.window.showErrorMessage(
+        `Invalid repository URL. Must point to .cursor/rules directory: ${url}`
+      );
+      return [];
+    }
+
     const apiUrl = convertGithubUrlToApi(url);
     if (!apiUrl) {
       console.error(`Failed to convert URL: ${url}`);
@@ -55,12 +84,14 @@ export async function fetchRulesFromRepo(
     // First try without token
     try {
       const response = await axios.get(apiUrl, getGitHubApiOptions(false));
+      console.log("API Response:", response.data);
       return processApiResponse(response.data, repoName);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 403) {
         // If rate limited, try again with token
         console.log("Rate limited, attempting with token...");
         const response = await axios.get(apiUrl, getGitHubApiOptions(true));
+        console.log("API Response with token:", response.data);
         return processApiResponse(response.data, repoName);
       }
       throw error; // Re-throw if it's not a rate limit error

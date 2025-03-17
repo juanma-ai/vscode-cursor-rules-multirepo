@@ -18,8 +18,8 @@ export class Cache {
     return Cache.instance;
   }
 
-  set<T>(key: string, data: T): void {
-    this.context.globalState.update(key, data);
+  async set<T>(key: string, data: T): Promise<void> {
+    await this.context.globalState.update(key, data);
   }
 
   get<T>(key: string): T | null {

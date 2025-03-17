@@ -20,7 +20,7 @@ export function getRawGithubUrl(url: string): string {
       const repo = parts[3];
       const path = parts.slice(5).join("/");
 
-      return `https://raw.githubusercontent.com/${owner}/${repo}/refs/heads/main/${path}/.cursorrules`;
+      return `https://raw.githubusercontent.com/${owner}/${repo}/refs/heads/main/${path}`;
     }
 
     // Handle regular GitHub URL
@@ -29,7 +29,7 @@ export function getRawGithubUrl(url: string): string {
     const repo = parts[2];
     const path = parts.slice(4).join("/");
 
-    return `https://raw.githubusercontent.com/${owner}/${repo}/refs/heads/main/${path}/.cursorrules`;
+    return `https://raw.githubusercontent.com/${owner}/${repo}/refs/heads/main/${path}`;
   } catch (error) {
     console.error("Error converting to raw URL:", error);
     return url; // Return original URL if conversion fails
@@ -46,11 +46,21 @@ export function getRepoIdentifier(url: string): string {
     const urlObj = new URL(url);
     if (urlObj.hostname === "github.com") {
       // Extract owner/repo from github.com URLs
-      const [, owner, repo] = urlObj.pathname.split("/");
+      const parts = urlObj.pathname.split("/");
+      const owner = parts[1];
+      const repo = parts[2];
       return `${owner}/${repo}`;
     } else if (urlObj.hostname === "api.github.com") {
       // Extract owner/repo from api.github.com URLs
-      const [, , , owner, repo] = urlObj.pathname.split("/");
+      const parts = urlObj.pathname.split("/");
+      const owner = parts[2];
+      const repo = parts[3];
+      return `${owner}/${repo}`;
+    } else if (urlObj.hostname === "raw.githubusercontent.com") {
+      // Extract owner/repo from raw.githubusercontent.com URLs
+      const parts = urlObj.pathname.split("/");
+      const owner = parts[1];
+      const repo = parts[2];
       return `${owner}/${repo}`;
     }
     return "unknown-repository";
@@ -95,13 +105,22 @@ export function convertGithubUrlToApi(githubUrl: string): string | null {
         if (startIndex !== -1 && rest.length > startIndex + 1) {
           // Skip the 'tree' or 'blob' part and the branch name
           path = rest.slice(startIndex + 2).join("/");
+          console.log("Path after tree/blob:", path);
         } else {
           path = rest.join("/");
+          console.log("Path without tree/blob:", path);
         }
       }
 
       const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-      console.log("Converted URL:", apiUrl);
+      console.log("Converting URL:", {
+        githubUrl,
+        pathParts,
+        owner,
+        repo,
+        path,
+        apiUrl,
+      });
       return apiUrl;
     }
 
