@@ -7,6 +7,7 @@ import { getRepoIdentifier } from "./urlUtils";
 import { fetchRulesFromRepo } from "./rulesFetcher";
 import { getGitHubApiOptions } from "./apiConfig";
 import axios from "axios";
+import path from "path";
 
 /**
  * Fetch the cursor rules list
@@ -81,40 +82,22 @@ export async function fetchCursorRuleContent(
     });
     const finalContent = response.data;
 
-    const fileExists = await fsPromises
-      .access(filePath)
-      .then(() => true)
-      .catch(() => false);
-
-    let operation = "created";
-    if (fileExists) {
-      const choice = await vscode.window.showQuickPick(
-        [
-          { label: "Append", description: "Add to existing rules" },
-          { label: "Overwrite", description: "Replace existing rules" },
-        ],
-        {
-          placeHolder: "How would you like to handle existing .cursorrules?",
-        }
-      );
-
-      if (!choice) {
-        return; // User cancelled
-      }
-
-      operation = `${choice.label.toLowerCase()}d`;
-      if (choice.label === "Append") {
-        const existingContent = await fsPromises.readFile(filePath, "utf-8");
-        const newContent = `${existingContent.trim()}\n\n${finalContent}`;
-        await fsPromises.writeFile(filePath, newContent);
-      } else {
-        await fsPromises.writeFile(filePath, finalContent);
-      }
-    } else {
-      await fsPromises.writeFile(filePath, finalContent);
+    // Create .cursor/rules directory if it doesn't exist
+    const rulesDir = path.join(path.dirname(filePath), ".cursor", "rules");
+    try {
+      await fsPromises.mkdir(rulesDir, { recursive: true });
+    } catch (error) {
+      console.error("Error creating rules directory:", error);
+      throw new Error("Failed to create rules directory");
     }
 
-    vscode.window.showInformationMessage(`Rules ${operation} successfully!`);
+    // Save the rule file in the .cursor/rules directory
+    const ruleFilePath = path.join(rulesDir, ruleName);
+    await fsPromises.writeFile(ruleFilePath, finalContent);
+
+    vscode.window.showInformationMessage(
+      `Rule saved successfully to ${ruleFilePath}!`
+    );
   } catch (error) {
     console.error("Error in fetchCursorRuleContent:", error);
     if (error instanceof Error) {

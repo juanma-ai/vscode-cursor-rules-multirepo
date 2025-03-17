@@ -9,6 +9,13 @@ const workspaceStateStorage = new Map<string, any>();
 // Global namespace that would be provided by VS Code
 const vscode = {
   workspace: {
+    workspaceFolders: [
+      {
+        uri: { fsPath: "/test-workspace" },
+        name: "test-workspace",
+        index: 0,
+      },
+    ],
     getConfiguration: () => ({
       get: (key: string) => {
         if (key === "cursorRules.repos") {

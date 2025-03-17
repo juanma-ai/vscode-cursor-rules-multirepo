@@ -81,7 +81,7 @@ export async function addCursorRuleCommand(context: vscode.ExtensionContext) {
     );
 
     vscode.window.showInformationMessage(
-      `.cursorrules file added to ${workspacePath}`
+      `Rule saved to ${path.join(workspacePath, ".cursor", "rules", selected)}`
     );
   } catch (error) {
     vscode.window.showErrorMessage(`Error adding rule file: ${error}`);
