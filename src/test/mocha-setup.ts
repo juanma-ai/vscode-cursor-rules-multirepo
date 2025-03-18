@@ -34,65 +34,70 @@ process.env.NODE_ENV = "test";
 
 // ---- Console Mocking ----
 
-// Store original console methods
+const capturedLogs: Record<string, any[]> = {
+  log: [],
+  error: [],
+  warn: [],
+  info: [],
+};
+
 const originalConsole = {
   log: console.log,
   error: console.error,
   warn: console.warn,
   info: console.info,
-  debug: console.debug,
 };
 
-// Store captured logs for assertions
-export interface CapturedLog {
-  method: "log" | "error" | "warn" | "info" | "debug";
-  args: any[];
-}
+// Show logs when SHOW_LOGS is set to true
+const shouldShowLogs = process.env.SHOW_LOGS === "true";
 
-let capturedLogs: CapturedLog[] = [];
-
-// Silent mock implementations
-console.log = function (...args: any[]) {
-  capturedLogs.push({ method: "log", args });
+// Override console methods to capture logs
+console.log = function (...args) {
+  capturedLogs.log.push(args);
+  if (shouldShowLogs) {
+    originalConsole.log(...args);
+  }
 };
 
-console.error = function (...args: any[]) {
-  capturedLogs.push({ method: "error", args });
-  // Silent errors in tests - uncomment for debugging
-  // originalConsole.error(...args);
+console.error = function (...args) {
+  capturedLogs.error.push(args);
+  if (shouldShowLogs) {
+    originalConsole.error(...args);
+  }
 };
 
-console.warn = function (...args: any[]) {
-  capturedLogs.push({ method: "warn", args });
+console.warn = function (...args) {
+  capturedLogs.warn.push(args);
+  if (shouldShowLogs) {
+    originalConsole.warn(...args);
+  }
 };
 
-console.info = function (...args: any[]) {
-  capturedLogs.push({ method: "info", args });
+console.info = function (...args) {
+  capturedLogs.info.push(args);
+  if (shouldShowLogs) {
+    originalConsole.info(...args);
+  }
 };
 
-console.debug = function (...args: any[]) {
-  capturedLogs.push({ method: "debug", args });
-};
-
-// Export helper functions for tests
+// Export functions for use in tests
 export function resetCapturedLogs() {
-  capturedLogs = [];
+  Object.keys(capturedLogs).forEach((key) => {
+    capturedLogs[key] = [];
+  });
 }
 
-export function getCapturedLogs(): CapturedLog[] {
+export function getCapturedLogs() {
   return capturedLogs;
 }
 
 export function logsContain(
-  method: CapturedLog["method"],
+  type: "log" | "error" | "warn" | "info",
   substring: string
-): boolean {
-  const found = capturedLogs.some(
-    (log) =>
-      log.method === method &&
-      log.args.some((arg) => String(arg).includes(substring))
+) {
+  return capturedLogs[type].some((args) =>
+    args.some((arg: string) => String(arg).includes(substring))
   );
-  return found;
 }
 
 // Set up automatic cleanup when node process exits
@@ -102,5 +107,4 @@ process.on("exit", () => {
   console.error = originalConsole.error;
   console.warn = originalConsole.warn;
   console.info = originalConsole.info;
-  console.debug = originalConsole.debug;
 });
