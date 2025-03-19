@@ -5,7 +5,7 @@ import mockFs from "mock-fs";
 import * as fs from "fs/promises";
 import * as path from "path";
 import { logsContain, resetCapturedLogs } from "../../mocha-setup";
-import { fetchCursorRuleContent } from "../../../utils/githubApi";
+import { fetchCursorRuleContent, saveRuleFile } from "../../../utils/githubApi";
 import { Cache } from "../../../utils/cache";
 import { Rule } from "../../../utils/githubApi/types";
 import axios from "axios";
@@ -186,6 +186,65 @@ describe("Filesystem Operations", () => {
 
       const content = await fs.readFile(expectedPath, "utf-8");
       expect(content).to.equal(ruleContent);
+    });
+  });
+
+  describe("saveRuleFile function", () => {
+    it("should create directory and save file correctly", async () => {
+      // Arrange
+      const mockWorkspaceFolder = {
+        uri: { fsPath: "/test-workspace" },
+      } as vscode.WorkspaceFolder;
+      const ruleName = "test-rule.mdc";
+      const ruleContent = "test rule content";
+      const expectedPath = path.join(
+        "/test-workspace",
+        ".cursor",
+        "rules",
+        ruleName
+      );
+
+      // Act
+      const result = await saveRuleFile(
+        mockWorkspaceFolder,
+        ruleName,
+        ruleContent
+      );
+
+      // Assert
+      expect(result).to.equal(expectedPath);
+
+      const fileExists = await fs
+        .access(expectedPath)
+        .then(() => true)
+        .catch(() => false);
+      expect(fileExists).to.be.true;
+
+      const content = await fs.readFile(expectedPath, "utf-8");
+      expect(content).to.equal(ruleContent);
+    });
+
+    it("should throw error when directory creation fails", async () => {
+      // Arrange
+      const mockWorkspaceFolder = {
+        uri: { fsPath: "/test-workspace" },
+      } as vscode.WorkspaceFolder;
+
+      // Mock file system to simulate a read-only directory
+      mockFs({
+        "/test-workspace": mockFs.directory({
+          mode: 0o444, // read-only
+          items: {},
+        }),
+      });
+
+      // Act & Assert
+      try {
+        await saveRuleFile(mockWorkspaceFolder, "rule.mdc", "content");
+        expect.fail("Should have thrown an error");
+      } catch (error: any) {
+        expect(error.message).to.include("Failed to create rules directory");
+      }
     });
   });
 });

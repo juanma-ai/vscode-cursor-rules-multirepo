@@ -9,6 +9,7 @@ import { getGitHubApiOptions } from "./apiConfig";
 import axios from "axios";
 import path from "path";
 import { workspace } from "vscode";
+import { saveRuleFile } from "./fileOperations";
 
 /**
  * Fetch the cursor rules list
@@ -85,7 +86,15 @@ export async function fetchCursorRuleContent(
       throw new Error("Rule not found or invalid download URL");
     }
 
-    console.log("Fetching rule content from:", selectedRule.downloadUrl);
+    console.log("----fetchCursorRuleContent");
+    console.log({
+      ruleName,
+      filePath,
+      onProgress,
+      context,
+    });
+
+    console.log("Fet__ching rule content from:", selectedRule.downloadUrl);
     const response = await axios.get(selectedRule.downloadUrl, {
       ...getGitHubApiOptions(),
       responseType: "text",
@@ -98,20 +107,11 @@ export async function fetchCursorRuleContent(
       throw new Error("No workspace folder found");
     }
 
-    // Create .cursor/rules directory in the workspace root
-    const rulesDir = path.join(workspaceFolder.uri.fsPath, ".cursor", "rules");
-    try {
-      await fsPromises.mkdir(rulesDir, { recursive: true });
-      console.log("Created rules directory:", rulesDir);
-    } catch (error) {
-      console.error("Error creating rules directory:", error);
-      throw new Error("Failed to create rules directory");
-    }
-
-    // Save the rule file in the .cursor/rules directory with original name
-    const ruleFilePath = path.join(rulesDir, ruleName);
-    await fsPromises.writeFile(ruleFilePath, finalContent);
-    console.log("Saved rule file to:", ruleFilePath);
+    const ruleFilePath = await saveRuleFile(
+      workspaceFolder,
+      ruleName,
+      finalContent
+    );
 
     vscode.window.showInformationMessage(
       `Rule saved successfully to ${ruleFilePath}!`

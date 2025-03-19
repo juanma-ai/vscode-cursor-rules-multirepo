@@ -63,7 +63,10 @@
     "test:unit": "mocha -r ts-node/register -r ./src/test/mocha-setup.ts ./src/test/unit/**/*.test.ts",
     "test:unit:debug": "SHOW_LOGS=true mocha -r ts-node/register -r ./src/test/mocha-setup.ts ./src/test/unit/**/*.test.ts",
     "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src --ext ts"
+    "lint": "eslint src --ext ts",
+    "clean": "rm -rf out",
+    "build": "tsc -p ./",
+    "build-clean": "npm run clean && npm run build"
   },
   "devDependencies": {
     "@types/axios": "^0.14.4",

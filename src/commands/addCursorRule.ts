@@ -1,9 +1,10 @@
 import * as vscode from "vscode";
-import {
-  fetchCursorRulesList,
-  fetchCursorRuleContent,
-} from "../utils/githubApi";
+import * as githubApi from "../utils/githubApi";
 import * as path from "path";
+
+console.log("githubApi", githubApi);
+
+const { fetchCursorRulesList, fetchCursorRuleContent } = githubApi;
 
 interface Progress {
   report(value: { increment?: number; message?: string }): void;
@@ -54,6 +55,7 @@ export async function addCursorRuleCommand(context: vscode.ExtensionContext) {
 
     const workspacePath = workspaceFolders[0].uri.fsPath;
     const filePath = path.join(workspacePath, ".cursorrules");
+    console.log("----addCursorRuleCommand");
     console.log({
       filePath,
       selected,
