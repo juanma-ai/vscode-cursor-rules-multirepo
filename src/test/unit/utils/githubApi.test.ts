@@ -124,9 +124,13 @@ describe("GitHub API Utilities", () => {
       console.log("Captured logs:", getCapturedLogs());
 
       // Assert axios call
-      expect(axiosStub.calledOnce).to.be.true;
+      expect(axiosStub.calledOnce, "Axios should be called exactly once").to.be
+        .true;
       const axiosCall = axiosStub.getCall(0);
-      expect(axiosCall.args[0]).to.equal(
+      expect(
+        axiosCall.args[0],
+        "Axios should be called with the correct GitHub API URL"
+      ).to.equal(
         "https://api.github.com/repos/user/repo/contents/.cursor/rules"
       );
       console.log(
@@ -136,19 +140,39 @@ describe("GitHub API Utilities", () => {
       console.log("Actual axios URL:", axiosCall.args[0]);
 
       // Assert result
-      expect(result).to.be.an("array");
-      expect(result.length, "Expected result array to have 1 item").to.equal(1);
-      expect(result[0].name).to.equal("rule1.mdc");
-      expect(result[0].downloadUrl).to.equal(
+      expect(result, "Result should be an array").to.be.an("array");
+      expect(
+        result.length,
+        "Result array should contain exactly one rule"
+      ).to.equal(1);
+      expect(
+        result[0].name,
+        "Rule name should match the expected value"
+      ).to.equal("rule1.mdc");
+      expect(
+        result[0].downloadUrl,
+        "Rule download URL should match the expected value"
+      ).to.equal(
         "https://raw.githubusercontent.com/user/repo/main/.cursor/rules/rule1.mdc"
       );
-      expect(result[0].source).to.equal("user/repo");
-      expect(mockCache.get.calledWith(RULES_CACHE_KEY)).to.be.true;
-      expect(configStub.calledOnce).to.be.true;
-      expect(mockCache.set.calledOnce).to.be.true;
+      expect(
+        result[0].source,
+        "Rule source should match the expected repository"
+      ).to.equal("user/repo");
+      expect(
+        mockCache.get.calledWith(RULES_CACHE_KEY),
+        "Cache should be checked for rules"
+      ).to.be.true;
+      expect(configStub.calledOnce, "Config should be called exactly once").to
+        .be.true;
+      expect(mockCache.set.calledOnce, "Cache should be set exactly once").to.be
+        .true;
 
       // Assert on logged messages using our console mock
-      expect(logsContain("log", "Final processed rules data")).to.be.true;
+      expect(
+        logsContain("log", "Final processed rules data"),
+        "Should log the final processed rules data"
+      ).to.be.true;
     });
 
     it("should return empty array if URL does not point to .cursor/rules directory", async () => {
@@ -187,8 +211,8 @@ describe("GitHub API Utilities", () => {
       let error: Error | null = null;
       try {
         await githubApiModule.fetchCursorRuleContent(
-          "nonexistent.json",
-          "/test/path/file.cursorrules", // use any path, we'll throw before file operations
+          "nonexistent-rule.mdc",
+          "/test/path/file-rule.mdc", // use any path, we'll throw before file operations
           progressCallback,
           mockContext
         );

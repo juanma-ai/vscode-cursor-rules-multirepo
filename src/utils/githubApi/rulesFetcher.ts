@@ -4,6 +4,9 @@ import { workspace } from "vscode";
 import { Rule } from "./types";
 import { convertGithubUrlToApi, getRawGithubUrl } from "./urlUtils";
 import { getGitHubApiOptions } from "./apiConfig";
+import createDebug from "debug";
+
+const debugFetcher = createDebug("cursor-rules:fetcher");
 
 /**
  * Process the API response
@@ -20,8 +23,8 @@ export function processApiResponse(
     return [];
   }
 
-  console.log("Processing API response:", JSON.stringify(data, null, 2));
-  console.log("Repository name:", repoName);
+  debugFetcher("Processing API response: %O", data);
+  debugFetcher("Repository name: %s", repoName);
 
   const rulesData = data
     .filter((file: any) => {
@@ -29,8 +32,12 @@ export function processApiResponse(
       const isMdc = file.name.endsWith(".mdc");
       const name = file.name || "undefined";
       const type = file.type || "undefined";
-      console.log(
-        `Filtering file: name=${name}, type=${type}, isFile=${isFile}, isMdc=${isMdc}`
+      debugFetcher(
+        "Filtering file: name=%s, type=%s, isFile=%s, isMdc=%s",
+        name,
+        type,
+        isFile,
+        isMdc
       );
       return isFile && isMdc;
     })
@@ -40,14 +47,11 @@ export function processApiResponse(
         downloadUrl: file.download_url as string,
         source: repoName,
       };
-      console.log("Mapped rule:", JSON.stringify(rule, null, 2));
+      debugFetcher("Mapped rule: %O", rule);
       return rule;
     });
 
-  console.log(
-    "Final processed rules data:",
-    JSON.stringify(rulesData, null, 2)
-  );
+  console.log("Final processed rules data: %O", rulesData);
   return rulesData;
 }
 
@@ -79,19 +83,19 @@ export async function fetchRulesFromRepo(
       return [];
     }
 
-    console.log("Fetching from API URL:", apiUrl);
+    debugFetcher("Fetching from API URL: %s", apiUrl);
 
     // First try without token
     try {
       const response = await axios.get(apiUrl, getGitHubApiOptions(false));
-      console.log("API Response:", response.data);
+      debugFetcher("API Response: %O", response.data);
       return processApiResponse(response.data, repoName);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 403) {
         // If rate limited, try again with token
-        console.log("Rate limited, attempting with token...");
+        debugFetcher("Rate limited, attempting with token...");
         const response = await axios.get(apiUrl, getGitHubApiOptions(true));
-        console.log("API Response with token:", response.data);
+        debugFetcher("API Response with token: %O", response.data);
         return processApiResponse(response.data, repoName);
       }
       throw error; // Re-throw if it's not a rate limit error

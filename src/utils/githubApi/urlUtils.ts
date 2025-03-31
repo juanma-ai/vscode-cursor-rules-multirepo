@@ -1,3 +1,7 @@
+import createDebug from "debug";
+
+const debugUrl = createDebug("cursor-rules:url");
+
 /**
  * Get the raw GitHub URL from a given URL
  * @param url - The URL to convert
@@ -105,15 +109,15 @@ export function convertGithubUrlToApi(githubUrl: string): string | null {
         if (startIndex !== -1 && rest.length > startIndex + 1) {
           // Skip the 'tree' or 'blob' part and the branch name
           path = rest.slice(startIndex + 2).join("/");
-          console.log("Path after tree/blob:", path);
+          debugUrl("Path after tree/blob: %s", path);
         } else {
           path = rest.join("/");
-          console.log("Path without tree/blob:", path);
+          debugUrl("Path without tree/blob: %s", path);
         }
       }
 
       const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-      console.log("Converting URL:", {
+      debugUrl("Converting URL: %O", {
         githubUrl,
         pathParts,
         owner,

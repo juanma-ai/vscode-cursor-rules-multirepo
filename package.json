@@ -1,7 +1,7 @@
 {
-  "name": "custom-cursor-rules-multirepo",
-  "displayName": "Custom Cursor Rules Multirepo",
-  "description": "An extension for Cursor and VSCode that lets you pull .cursorrules files from a set of repositories",
+  "name": "cursor-rules-downloader",
+  "displayName": "Cursor Rules Downloader",
+  "description": "An extension for Cursor and VSCode that lets you pull .cursor/rules files from a set of repositories",
   "version": "1.0.6",
   "author": {
     "name": "juanmaguitar",
@@ -30,7 +30,7 @@
     "commands": [
       {
         "command": "cursorRules.addRule",
-        "title": "Cursor Rules Multirepo: Add .cursorrules"
+        "title": "Cursor Rules Multirepo: Add .cursor/rules"
       }
     ],
     "configuration": {
@@ -59,9 +59,8 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "test": "node ./out/test/runTest.js",
-    "test:unit": "mocha -r ts-node/register -r ./src/test/mocha-setup.ts ./src/test/unit/**/*.test.ts",
-    "test:unit:debug": "SHOW_LOGS=true mocha -r ts-node/register -r ./src/test/mocha-setup.ts ./src/test/unit/**/*.test.ts",
+    "test": "mocha -r ts-node/register -r ./src/test/mocha-setup.ts ./src/test/unit/**/*.test.ts",
+    "test:debug": "SHOW_LOGS=true mocha -r ts-node/register -r ./src/test/mocha-setup.ts ./src/test/unit/**/*.test.ts",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "clean": "rm -rf out",
@@ -90,7 +89,9 @@
     "vscode-test": "^1.6.1"
   },
   "dependencies": {
-    "axios": "^0.24.0"
+    "@types/debug": "^4.1.12",
+    "axios": "^0.24.0",
+    "debug": "^4.4.0"
   },
   "repository": {
     "type": "git",

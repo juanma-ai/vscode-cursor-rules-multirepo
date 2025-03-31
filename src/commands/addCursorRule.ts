@@ -1,8 +1,10 @@
 import * as vscode from "vscode";
 import * as githubApi from "../utils/githubApi";
 import * as path from "path";
+import createDebug from "debug";
 
-console.log("githubApi", githubApi);
+const debugCommand = createDebug("cursor-rules:command");
+debugCommand("githubApi: %O", githubApi);
 
 const { fetchCursorRulesList, fetchCursorRuleContent } = githubApi;
 
@@ -55,8 +57,8 @@ export async function addCursorRuleCommand(context: vscode.ExtensionContext) {
 
     const workspacePath = workspaceFolders[0].uri.fsPath;
     const filePath = path.join(workspacePath, ".cursorrules");
-    console.log("----addCursorRuleCommand");
-    console.log({
+    debugCommand("----addCursorRuleCommand");
+    debugCommand("Command parameters: %O", {
       filePath,
       selected,
       context,

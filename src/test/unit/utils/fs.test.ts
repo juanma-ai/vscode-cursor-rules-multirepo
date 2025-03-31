@@ -51,7 +51,7 @@ describe("Filesystem Operations", () => {
     it("should create .cursor/rules directory if it does not exist", async () => {
       // Arrange
       const rulesDir = path.join("/test-workspace", ".cursor", "rules");
-      const ruleName = "example.cursorrules";
+      const ruleName = "example-rule.mdc";
       const ruleContent = "test rule content";
       const expectedPath = path.join(rulesDir, ruleName);
 
@@ -78,10 +78,10 @@ describe("Filesystem Operations", () => {
       const rulesDir = path.join("/test-workspace", ".cursor", "rules");
       await fs.mkdir(rulesDir, { recursive: true });
 
-      const existingFile = path.join(rulesDir, "existing.cursorrules");
+      const existingFile = path.join(rulesDir, "existing-rules.mdc");
       await fs.writeFile(existingFile, "existing content");
 
-      const newFile = path.join(rulesDir, "new.cursorrules");
+      const newFile = path.join(rulesDir, "new-rules.mdc");
       const newContent = "new content";
 
       // Act
@@ -121,7 +121,7 @@ describe("Filesystem Operations", () => {
     it("should preserve the original filename from the repository when saving", async () => {
       // Arrange
       const rulesDir = path.join("/test-workspace", ".cursor", "rules");
-      const ruleName = "example.cursorrules";
+      const ruleName = "example-rule.mdc";
       const ruleContent = "test rule content";
       const expectedPath = path.join(rulesDir, ruleName);
 
@@ -145,7 +145,7 @@ describe("Filesystem Operations", () => {
     it("should handle duplicate rule names by overwriting", async () => {
       // Arrange
       const rulesDir = path.join("/test-workspace", ".cursor", "rules");
-      const ruleName = "example.cursorrules";
+      const ruleName = "example-rule.mdc";
       const originalContent = "original content";
       const newContent = "new content";
       const expectedPath = path.join(rulesDir, ruleName);
@@ -167,7 +167,7 @@ describe("Filesystem Operations", () => {
     it("should handle special characters in rule names", async () => {
       // Arrange
       const rulesDir = path.join("/test-workspace", ".cursor", "rules");
-      const ruleName = "special@#$%^&.cursorrules";
+      const ruleName = "special@#$%^&-rule.mdc";
       const ruleContent = "test rule content";
       const expectedPath = path.join(rulesDir, ruleName);
 

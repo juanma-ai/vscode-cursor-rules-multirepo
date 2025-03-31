@@ -10,6 +10,13 @@ import axios from "axios";
 import path from "path";
 import { workspace } from "vscode";
 import { saveRuleFile } from "./fileOperations";
+import createDebug from "debug";
+
+// Create namespaced debuggers
+const debugList = createDebug("cursor-rules:list");
+const debugContent = createDebug("cursor-rules:content");
+const debugCache = createDebug("cursor-rules:cache");
+const debugError = createDebug("cursor-rules:error");
 
 /**
  * Fetch the cursor rules list
@@ -26,7 +33,7 @@ export async function fetchCursorRulesList(
     try {
       const repos = getConfiguredRepos();
       if (!repos || !Array.isArray(repos)) {
-        console.error("Invalid or empty repos configuration");
+        debugError("Invalid or empty repos configuration");
         return [];
       }
 
@@ -36,27 +43,27 @@ export async function fetchCursorRulesList(
 
       const repoResults = await Promise.all(rulesPromises);
       const combinedRules = repoResults.flat();
-      console.log("Setting cache with combined rules:", combinedRules);
+      debugCache("Setting cache with combined rules: %O", combinedRules);
       await cache.set(RULES_CACHE_KEY, combinedRules);
       return combinedRules;
     } catch (error) {
-      console.error("Cache update failed:", error);
+      debugError("Cache update failed: %O", error);
       return [];
     }
   };
 
   if (cachedRules) {
-    console.log("Found cached rules:", cachedRules);
+    debugCache("Found cached rules: %O", cachedRules);
     // Don't await the cache update, let it run in the background
     updateCache().catch((error) => {
-      console.error("Background cache update failed:", error);
+      debugError("Background cache update failed: %O", error);
     });
     return cachedRules;
   }
 
-  console.log("No cached rules found, fetching...");
+  debugList("No cached rules found, fetching...");
   const updatedRules = await updateCache();
-  console.log("Fetched rules:", updatedRules);
+  debugList("Fetched rules: %O", updatedRules);
   return updatedRules;
 }
 
@@ -73,28 +80,26 @@ export async function fetchCursorRuleContent(
   onProgress: (progress: number) => void,
   context: vscode.ExtensionContext
 ): Promise<void> {
+  debugContent("fetchCursorRuleContent called with: %O", {
+    ruleName,
+    filePath,
+    context: context ? "provided" : "missing",
+  });
+
   try {
     const cache = Cache.getInstance(context);
     const rules = cache.get<Rule[]>(RULES_CACHE_KEY);
     const selectedRule = rules?.find((rule) => rule.name === ruleName);
 
     if (!selectedRule || !selectedRule.downloadUrl) {
-      console.error("Selected rule or download URL not found:", {
+      console.error("Selected rule or download URL not found: %O", {
         ruleName,
         selectedRule,
       });
       throw new Error("Rule not found or invalid download URL");
     }
 
-    console.log("----fetchCursorRuleContent");
-    console.log({
-      ruleName,
-      filePath,
-      onProgress,
-      context,
-    });
-
-    console.log("Fet__ching rule content from:", selectedRule.downloadUrl);
+    debugContent("Fetching rule content from: %s", selectedRule.downloadUrl);
     const response = await axios.get(selectedRule.downloadUrl, {
       ...getGitHubApiOptions(),
       responseType: "text",
@@ -113,11 +118,12 @@ export async function fetchCursorRuleContent(
       finalContent
     );
 
+    debugContent("Rule saved successfully to: %s", ruleFilePath);
     vscode.window.showInformationMessage(
       `Rule saved successfully to ${ruleFilePath}!`
     );
   } catch (error) {
-    console.error("Error in fetchCursorRuleContent:", error);
+    debugError("Error in fetchCursorRuleContent: %O", error);
     if (error instanceof Error) {
       throw new Error(`Failed to handle file: ${error.message}`);
     }
