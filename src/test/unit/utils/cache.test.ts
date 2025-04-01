@@ -41,10 +41,8 @@ describe("Cache", () => {
 
   describe("getInstance", () => {
     it("should return the same instance when called multiple times", () => {
-      const instance1 = Cache.getInstance(mockContext);
       const instance2 = Cache.getInstance(mockContext);
-
-      expect(instance1).to.equal(instance2);
+      expect(cacheInstance).to.equal(instance2);
     });
   });
 

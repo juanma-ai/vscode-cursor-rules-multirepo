@@ -1,4 +1,3 @@
-import * as vscode from "vscode";
 import { workspace } from "vscode";
 import { GitHubApiOptions } from "./types";
 

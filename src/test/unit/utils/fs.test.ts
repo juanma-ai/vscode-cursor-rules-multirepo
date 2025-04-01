@@ -4,10 +4,9 @@ import * as vscode from "vscode";
 import mockFs from "mock-fs";
 import * as fs from "fs/promises";
 import * as path from "path";
-import { logsContain, resetCapturedLogs } from "../../mocha-setup";
-import { fetchCursorRuleContent, saveRuleFile } from "../../../utils/githubApi";
+import { resetCapturedLogs } from "../../mocha-setup";
+import { saveRuleFile } from "../../../utils/githubApi";
 import { Cache } from "../../../utils/cache";
-import { Rule } from "../../../utils/githubApi/types";
 import axios from "axios";
 
 describe("Filesystem Operations", () => {

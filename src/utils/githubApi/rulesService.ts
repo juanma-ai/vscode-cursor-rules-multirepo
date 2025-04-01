@@ -1,4 +1,3 @@
-import * as fsPromises from "fs/promises";
 import * as vscode from "vscode";
 import { Cache } from "../cache";
 import { getConfiguredRepos } from "../config";
@@ -7,7 +6,7 @@ import { getRepoIdentifier } from "./urlUtils";
 import { fetchRulesFromRepo } from "./rulesFetcher";
 import { getGitHubApiOptions } from "./apiConfig";
 import axios from "axios";
-import path from "path";
+
 import { workspace } from "vscode";
 import { saveRuleFile } from "./fileOperations";
 import createDebug from "debug";

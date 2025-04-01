@@ -84,7 +84,7 @@ const vscode = {
     },
   },
   commands: {
-    registerCommand: (_command: string, _callback: () => void) => {
+    registerCommand: (/*_command: string, _callback: () => void*/) => {
       return {
         dispose: () => {
           // Mock implementation - intentionally empty
@@ -126,7 +126,7 @@ const vscode = {
       return Promise.resolve(true);
     }
 
-    setKeysForSync(keys: readonly string[]): void {
+    setKeysForSync(/*keys: readonly string[]*/): void {
       // Mock implementation - intentionally empty
     }
   },
@@ -143,9 +143,9 @@ const vscode = {
     logPath = "";
     extensionMode = 1;
     secrets = {
-      get: (key: string) => Promise.resolve(""),
-      store: (key: string, value: string) => Promise.resolve(),
-      delete: (key: string) => Promise.resolve(),
+      get: (/*key: string*/) => Promise.resolve(""),
+      store: (/*key: string, value: string*/) => Promise.resolve(),
+      delete: (/*key: string*/) => Promise.resolve(),
     };
 
     constructor() {

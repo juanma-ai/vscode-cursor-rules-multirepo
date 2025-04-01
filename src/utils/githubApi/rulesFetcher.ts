@@ -2,7 +2,7 @@ import axios from "axios";
 import * as vscode from "vscode";
 import { workspace } from "vscode";
 import { Rule } from "./types";
-import { convertGithubUrlToApi, getRawGithubUrl } from "./urlUtils";
+import { convertGithubUrlToApi } from "./urlUtils";
 import { getGitHubApiOptions } from "./apiConfig";
 import createDebug from "debug";
 
