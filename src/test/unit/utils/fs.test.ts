@@ -6,34 +6,10 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import { resetCapturedLogs } from "../../mocha-setup";
 import { saveRuleFile } from "../../../utils/githubApi";
-import { Cache } from "../../../utils/cache";
-import axios from "axios";
 
 describe("Filesystem Operations", () => {
-  let mockContext: vscode.ExtensionContext;
-  let mockCache: { get: sinon.SinonStub; set: sinon.SinonStub };
-  let axiosStub: sinon.SinonStub;
-
   beforeEach(() => {
     resetCapturedLogs();
-
-    // Mock cache
-    mockCache = {
-      get: sinon.stub(),
-      set: sinon.stub(),
-    };
-    sinon.stub(Cache, "getInstance").returns(mockCache as unknown as Cache);
-
-    // Mock axios
-    axiosStub = sinon.stub(axios, "get");
-
-    // Mock context
-    mockContext = {
-      globalState: {
-        get: sinon.stub(),
-        update: sinon.stub().resolves(true),
-      },
-    } as unknown as vscode.ExtensionContext;
 
     // Mock file system with empty workspace
     mockFs({
