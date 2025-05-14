@@ -1,8 +1,8 @@
 {
-  "name": "cursor-rules-downloader",
-  "displayName": "Cursor Rules Downloader",
-  "description": "An extension for Cursor and VSCode that lets you pull .cursor/rules files from a set of repositories",
-  "version": "1.0.6",
+  "name": "custom-cursor-rules-multirepo",
+  "displayName": "Custom Cursor Rules Multirepo",
+  "description": "An extension for Cursor and VSCode that lets you pull .cursorrules files from a set of repositories",
+  "version": "1.1.0",
   "author": {
     "name": "juanmaguitar",
     "url": "https://github.com/juanmaguitar"
@@ -30,7 +30,7 @@
     "commands": [
       {
         "command": "cursorRules.addRule",
-        "title": "Cursor Rules Multirepo: Add .cursor/rules"
+        "title": "Cursor Rules Multirepo: Add .cursorrules"
       }
     ],
     "configuration": {
@@ -89,9 +89,7 @@
     "vscode-test": "^1.6.1"
   },
   "dependencies": {
-    "@types/debug": "^4.1.12",
-    "axios": "^0.24.0",
-    "debug": "^4.4.0"
+    "axios": "^0.24.0"
   },
   "repository": {
     "type": "git",
